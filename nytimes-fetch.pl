@@ -42,16 +42,22 @@ sub results_to_csv
     my ($key, $urlOutput, $startTime) = @_;
     
     my (@raceNames) = $urlOutput =~ m@<td class="nytint-state-col"><a.*?>([^<]+)</a></td>@gs;
-    my (@demPercent) = $urlOutput =~ m@<td class="nytint-big-board-entry nytint-pct nytint-pct-dem">.*?(\d+%|Unc\.).*?</td>@gs;
-    my (@gopPercent) = $urlOutput =~ m@<td class="nytint-big-board-entry nytint-pct nytint-pct-gop">.*?(\d+%|Unc\.).*?</td>@gs;
-    my (@othPercent) = $urlOutput =~ m@<td class="nytint-big-board-entry nytint-pct nytint-pct-oth">.*?(\d+%|Unc\.).*?</td>@gs;
+    my (@demPercent) = $urlOutput =~ m@<td class="nytint-big-board-entry nytint-pct nytint-pct-dem">.*?(\d+%|Unc\.|&nbsp;).*?</td>@gs;
+    my (@gopPercent) = $urlOutput =~ m@<td class="nytint-big-board-entry nytint-pct nytint-pct-gop">.*?(\d+%|Unc\.|&nbsp;).*?</td>@gs;
+    my (@othPercent) = $urlOutput =~ m@<td class="nytint-big-board-entry nytint-pct nytint-pct-oth">.*?(\d+%|Unc\.|&nbsp;).*?</td>@gs;
     
     for (my $i = 0; $i < $#raceNames; $i++)
     {
-        print "$key," . $raceNames[$i] . "," . $demPercent[$i] . "," . $gopPercent[$i];
+        my $dem = $demPercent[$i];
+        my $gop = $gopPercent[$i];
+        $dem =~ s/&nbsp;//g;
+        $gop =~ s/&nbsp;//g;
+        print "$key," . $raceNames[$i] . ",$dem,$gop";
         if ($#othPercent == $#raceNames)
         {
-            print "," . $othPercent[$i];
+            my $oth = $othPercent[$i];
+            $oth =~ s/&nbsp;//g;
+            print "," . $oth;
         }
         else
         {
