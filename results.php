@@ -9,27 +9,29 @@
   <meta http-equiv="refresh" content="60" />
   <style type="text/css">
       body { font-family: Georgia, serif; }
-      .result_bar { width: 100%; }
-      .result_bar .dem_result { color: blue; float: left; }
-      .result_bar .gop_result { color: red; }
-      .result_bar .ind_result { color: green; float: left; }
-      .result_bar .unknown_result { color: gray; float: left; }
-      .result_text { width: 100%; }
-      .result_text .dem_result { float: left; }
-      .result_text .ind_result { float: left; }
-      .result_text .unknown_result { float: left; }
-      .result_text .gop_result {  }
+      .navigation { position: fixed; top: 0px; right: 0px; float: right; border: 1px solid black; width: 300px; text-align: right; }
+
+      .result_bar { }
+      .result_bar .dem_result { background-color: blue; float: left; }
+      .result_bar .gop_result { background-color: red; float: left; }
+      .result_bar .ind_result { background-color: green; float: left; }
+      .result_bar .unknown_result { background-color: gray; }
+      .result_text { }
+      .result_text .dem_result { float: left; text-align: left; }
+      .result_text .ind_result { float: left; text-align: center; }
+      .result_text .unknown_result { text-align: right; }
+      .result_text .gop_result{ float: left; text-align: center; }
   </style>
 </head>
 <body>
 <?php
-    if (array_key_exists('race_type', $_GET))
+    if (!array_key_exists('race_type', $_GET))
     {
-        $query = mysql_query("SELECT * FROM election_result ORDER BY last_update DESC, race_name ASC") or die(mysql_error());
+        $query = mysql_query("SELECT type.race_type, result.race_name, result.democrat_percent, result.gop_percent, result.ind_percent, result.last_update FROM election_result AS result INNER JOIN election_race_type AS type ON type.id=result.race_type ORDER BY last_update DESC, race_type ASC, race_name ASC") or die(mysql_error());
     }
     else
     {
-        $query = mysql_query("SELECT * FROM election_result WHERE race_type='" . $_GET['race_type'] . "' ORDER BY race_name ASC") or die(mysql_error());
+        $query = mysql_query("SELECT type.race_type, result.race_name, result.democrat_percent, result.gop_percent, result.ind_percent, result.last_update FROM election_result AS result INNER JOIN election_race_type AS type ON type.id=result.race_type WHERE result.race_type='" . $_GET['race_type'] . "' ORDER BY race_name ASC") or die(mysql_error());
     }
 ?>
 <?php 
@@ -42,8 +44,10 @@ No results yet.
     else
     {
         ?>
-<table width='100%'>
+<div class="content">
+<table>
     <tr>
+        <th>Type</th>
         <th>Name</th>
         <th>Result</th>
         <th>Last Update</th>
@@ -54,19 +58,20 @@ No results yet.
             $unknown_percent = (100 -  $row['democrat_percent'] - $row['ind_percent'] - $row['gop_percent']);
             ?>
             <tr>
+                <td><?= $row['race_type'] ?></td>
                 <td><?= $row['race_name'] ?></td>
                 <td>
                     <div class='result_bar'>
-                        <div class='dem_result' width='<?= $row['democrat_percent'] ?>%'>&nbsp;</div>
-                        <div class='ind_result' width='<?= $row['ind_percent'] ?>%'>&nbsp;</div>
-                        <div class='unknown_result' width='<?= $unknown_percent ?>%'>&nbsp;</div>
-                        <div class='gop_result' width='<?= $row['gop_percent'] ?>%'>&nbsp;</div>
+                        <div class='dem_result' style="width: <?= $row['democrat_percent'] * 3 ?>px">&nbsp;</div>
+                        <div class='ind_result' style="width: <?= $row['ind_percent'] * 3 ?>px">&nbsp;</div>
+                        <div class='gop_result' style="width: <?= $row['gop_percent'] * 3?>px">&nbsp;</div>
+                        <div class='unknown_result' style="width: <?= $unknown_percent * 3 ?>px">&nbsp;</div>
                     </div>
                     <div class='result_text'>
-                        <div class='dem_result' width='<?= $row['democrat_percent'] ?>%'><?= $row['democrat_percent'] ?></div>
-                        <div class='ind_result' width='<?= $row['ind_percent'] ?>%'><?= $row['democrat_percent'] ?></div>
-                        <div class='unknown_result' width='<?= $unknown_percent ?>%'><?= $row['democrat_percent'] ?></div>
-                        <div class='gop_result' width='<?= $row['gop_percent'] ?>%'><?= $row['democrat_percent'] ?></div>
+                        <div class='dem_result' style="width: <?= $row['democrat_percent']*3 ?>px"><?= $row['democrat_percent'] ?></div>
+                        <div class='ind_result' style="width: <?= $row['ind_percent']*3 ?>px"><?= $row['ind_percent'] ?></div>
+                        <div class='gop_result' style="width: <?= $row['gop_percent']*3 ?>px"><?= $row['gop_percent'] ?></div>
+                        <div class='unknown_result' style="width: <?= $unknown_percent * 3 ?>px"><?= $unknown_percent ?></div>
                     </div>
                 </td>
                 <td>
@@ -77,5 +82,16 @@ No results yet.
         }
     }
 ?>
+</div>
+<div class="navigation">
+    <a href="?">All Results</a><br />
+    <?php
+        $query = mysql_query("SELECT id, race_type FROM election_race_type ORDER BY race_type ASC");
+        while($row = mysql_fetch_assoc($query))
+        {
+            ?><a href="?race_type=<?= $row['id'] ?>"><?= $row['race_type'] ?></a><br /><?php
+        }
+    ?>
+</div>
 </body>
 </html>
