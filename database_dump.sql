@@ -54,7 +54,8 @@ CREATE TABLE `election_result` (
   `gop_percent` int(11) NOT NULL,
   `ind_percent` int(11) NOT NULL,
   `last_update` datetime NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `race_name_index` (`race_type`,`race_name`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -76,4 +77,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2010-10-30 17:31:52
+-- Dump completed on 2010-10-30 18:17:01
