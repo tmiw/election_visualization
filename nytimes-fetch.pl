@@ -51,8 +51,8 @@ my %race_ids = ( );
 my $sth = $db_conn->prepare("SELECT * FROM election_race_type");
 $sth->execute();
 while(my($id, $type) = $sth->fetchrow_array())
-{ 
-    $race_ids{$id} = $type;
+{
+    $race_ids{$type} = $id;
 }
 
 # Main scraping logic: split into individual queries.
@@ -60,10 +60,10 @@ sub results_to_sql
 {
     my ($key, $urlOutput, $startTime, $db_conn, $race_id) = @_;
     
-    my (@raceNames) = $urlOutput =~ m@<td class="nytint-state-col"><a.*?>([^<]+)</a></td>@gs;
-    my (@demPercent) = $urlOutput =~ m@<td class="nytint-big-board-entry nytint-pct nytint-pct-dem">.*?(\d+%|Unc\.|&nbsp;).*?</td>@gs;
-    my (@gopPercent) = $urlOutput =~ m@<td class="nytint-big-board-entry nytint-pct nytint-pct-gop">.*?(\d+%|Unc\.|&nbsp;).*?</td>@gs;
-    my (@othPercent) = $urlOutput =~ m@<td class="nytint-big-board-entry nytint-pct nytint-pct-oth">.*?(\d+%|Unc\.|&nbsp;).*?</td>@gs;
+    my (@raceNames) = $urlOutput =~ m@<td class="nytint-state-col">\s*<a.*?>([^<]+)</a>\s*</td>@gs;
+    my (@demPercent) = $urlOutput =~ m@<td class="nytint-big-board-entry nytint-pct nytint-pct-dem">\s*(\d+%|<abbr title='Uncontested' class='nytint-unc'>Unc\.</abbr>|&nbsp;)\s*</td>@gs;
+    my (@gopPercent) = $urlOutput =~ m@<td class="nytint-big-board-entry nytint-pct nytint-pct-gop">\s*(\d+%|<abbr title='Uncontested' class='nytint-unc'>Unc\.</abbr>|&nbsp;)\s*</td>@gs;
+    my (@othPercent) = $urlOutput =~ m@<td class="nytint-big-board-entry nytint-pct nytint-pct-oth">\s*(\d+%|<abbr title='Uncontested' class='nytint-unc'>Unc\.</abbr>|&nbsp;)\s*</td>@gs;
     
     for (my $i = 0; $i < $#raceNames; $i++)
     {
@@ -76,13 +76,21 @@ sub results_to_sql
         
         if ($dem =~ /Unc/i)
         {
-            $dem = 100;
-            $gop = 0;
+            $dem = "100";
+            $gop = "0";
         } 
         if ($gop =~ /Unc/i)
         {
-            $gop = 100;
-            $dem = 0;
+            $gop = "100";
+            $dem = "0";
+        }
+        if ($dem eq "")
+        {
+            $dem = "0";
+        }
+        if ($gop eq "")
+        {
+            $gop = "0";
         }
         $query = 'INSERT INTO election_result (race_type, race_name, democrat_percent, gop_percent, ind_percent, last_update)';
         $query .= " VALUES ($race_id, '" . $raceNames[$i] . "', $dem, $gop, ";
@@ -90,6 +98,10 @@ sub results_to_sql
         {
             my $oth = $othPercent[$i];
             $oth =~ s/&nbsp;|%//g;
+            if ($oth eq "")
+            {
+                $oth = "0";
+            }
         }
         $query .= "$oth, '$startTime') ";
         $query .= <<EOF;
@@ -100,7 +112,7 @@ EOF
 }
 
 # Get start time of run.
-my $startTime = strftime('%D %T',localtime);
+my $startTime = strftime('%Y-%m-%d %T',localtime);
  
 # Main loop: fetch each of these URLs and run processing logic on results.
 foreach my $key (keys %races)
