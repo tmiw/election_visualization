@@ -91,7 +91,17 @@ No results yet.
         {
             ?><a href="?race_type=<?= $row['id'] ?>"><?= $row['race_type'] ?></a><br /><?php
         }
+    ?><br />
+    <?php
+        $query = mysql_query("(select 'dem' as party, count(id) as won from election_result where gop_percent < democrat_percent) union (select 'gop' as party, count(id) as won from election_result where democrat_percent < gop_percent)");
+        $num_wins = array();
+        while($row = mysql_fetch_assoc($query))
+        {
+            $num_wins[$row['party']] = $row['won']; 
+        }
     ?>
+    <b>Democrat/Yes wins:</b> <?= $num_wins['dem'] ?><br />
+    <b>GOP/No wins:</b> <?= $num_wins['gop'] ?> 
 </div>
 </body>
 </html>
