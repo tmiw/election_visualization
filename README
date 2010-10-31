@@ -5,7 +5,7 @@ SETUP:
 1. Put results.php and config.inc somewhere where your Web server can see them.
 2. Create a MySQL database and grant SELECT, INSERT and UPDATE permissions to it.
 3. mysql -u username -p your_database < database_dump.sql
-4. Add nytimes-fetch.pl to your cron after modifying database settings appropriately.
+4. Add nytimes-fetch.pl and/or other .pl scripts to your cron after modifying database settings appropriately.
 5. Enjoy!
 
 Please contact me if you have problems or questions :)
