@@ -1,7 +1,7 @@
 <?php
     include 'config.inc';
     $db_conn = mysql_pconnect($db_host, $db_user, $db_password) or die(mysql_error());
-    mysql_select_db($db_name) or die(mysql_error());
+    mysql_select_db($db_database) or die(mysql_error());
 ?>
 <html>
 <head>
