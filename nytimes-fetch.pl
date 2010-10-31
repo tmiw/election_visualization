@@ -70,6 +70,7 @@ sub results_to_sql
         my $dem = $demPercent[$i];
         my $gop = $gopPercent[$i];
         my $oth = "0";
+        my $query = "";
         $dem =~ s/&nbsp;|%//g;
         $gop =~ s/&nbsp;|%//g;
         
@@ -84,7 +85,7 @@ sub results_to_sql
             $dem = 0;
         }
         $query = 'INSERT INTO election_result (race_type, race_name, democrat_percent, gop_percent, ind_percent, last_update)';
-        $query .= " VALUES ($race_id, '" . $raceNames[$i] . ", $dem, $gop, ";
+        $query .= " VALUES ($race_id, '" . $raceNames[$i] . "', $dem, $gop, ";
         if ($#othPercent == $#raceNames)
         {
             my $oth = $othPercent[$i];
