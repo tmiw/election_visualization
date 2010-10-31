@@ -75,7 +75,6 @@ No results yet.
             </tr>
             <?php
         }
-    ?>
     }
 ?>
 </body>
