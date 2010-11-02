@@ -96,25 +96,42 @@ No results yet.
     <?php
         while($row = mysql_fetch_assoc($query))
         {
-            $unknown_percent = (100 -  $row['democrat_percent'] - $row['ind_percent'] - $row['gop_percent']);
+            $unknown_percent = (100 -  $row['democrat_percent'] - $row['gop_percent']);
             ?>
             <tr>
                 <td><?= $row['race_type'] ?></td>
                 <td><?= $row['race_name'] ?></td>
+            <?php if ($unknown_percent < 100) { ?>
+                <td>
+                    <div class='result_bar'>
+                        <div class='dem_result' style="width: <?= $row['democrat_percent'] * 3 ?>px">&nbsp;</div>
+                        <div class='ind_result' style="width: <?= $unknown_percent * 3 ?>px">&nbsp;</div>
+                        <div class='gop_result' style="width: <?= $row['gop_percent'] * 3?>px">&nbsp;</div>
+                        <div class='unknown_result' style="width: 0px">&nbsp;</div>
+                    </div>
+                    <div class='result_text'>
+                        <div class='dem_result' style="width: <?= $row['democrat_percent']*3 ?>px"><?= $row['democrat_percent'] ?></div>
+                        <div class='ind_result' style="width: <?= $unknown_percent * 3 ?>px"><?= $unknown_percent ?></div>
+                        <div class='gop_result' style="width: <?= $row['gop_percent']*3 ?>px"><?= $row['gop_percent'] ?></div>
+                        <div class='unknown_result' style="width: 0px">&nbsp;</div>
+                    </div>
+                </td>
+            <?php } else { ?>
                 <td>
                     <div class='result_bar'>
                         <div class='dem_result' style="width: <?= $row['democrat_percent'] * 3 ?>px">&nbsp;</div>
                         <div class='ind_result' style="width: <?= $row['ind_percent'] * 3 ?>px">&nbsp;</div>
-                        <div class='gop_result' style="width: <?= $row['gop_percent'] * 3?>px">&nbsp;</div>
+                        <div class='gop_result' style="width: <?= $row['gop_percent'] * 3 ?>px">&nbsp;</div>
                         <div class='unknown_result' style="width: <?= $unknown_percent * 3 ?>px">&nbsp;</div>
                     </div>
                     <div class='result_text'>
                         <div class='dem_result' style="width: <?= $row['democrat_percent']*3 ?>px"><?= $row['democrat_percent'] ?></div>
-                        <div class='ind_result' style="width: <?= $row['ind_percent']*3 ?>px"><?= $row['ind_percent'] ?></div>
-                        <div class='gop_result' style="width: <?= $row['gop_percent']*3 ?>px"><?= $row['gop_percent'] ?></div>
+                        <div class='ind_result' style="width: <?= $row['ind_percent'] * 3 ?>px"><?= $row['ind_percent'] ?></div>
+                        <div class='gop_result' style="width: <?= $row['gop_percent'] * 3 ?>px"><?= $row['gop_percent'] ?></div>
                         <div class='unknown_result' style="width: <?= $unknown_percent * 3 ?>px"><?= $unknown_percent ?></div>
                     </div>
                 </td>
+            <?php } ?>
                 <td>
                     <?= interval_since_now($row['last_update']) ?> ago
                 </td>
@@ -134,7 +151,14 @@ No results yet.
         }
     ?><br />
     <?php
-        $query = mysql_query("(select 'dem' as party, count(id) as won from election_result where gop_percent < democrat_percent) union (select 'gop' as party, count(id) as won from election_result where democrat_percent < gop_percent)");
+        if (!array_key_exists('race_type', $_GET))
+        {
+            $query = mysql_query("(select 'dem' as party, count(id) as won from election_result where gop_percent < democrat_percent) union (select 'gop' as party, count(id) as won from election_result where democrat_percent < gop_percent)");
+        }
+        else
+        {
+            $query = mysql_query("(select 'dem' as party, count(id) as won from election_result where gop_percent < democrat_percent and race_type='" . $_GET['race_type'] . "') union (select 'gop' as party, count(id) as won from election_result where democrat_percent < gop_percent and race_type='" . $_GET['race_type'] . "')");
+        }
         $num_wins = array();
         while($row = mysql_fetch_assoc($query))
         {
