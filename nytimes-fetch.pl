@@ -92,8 +92,6 @@ sub results_to_sql
         {
             $gop = "0";
         }
-        $query = 'INSERT INTO election_result (race_type, race_name, democrat_percent, gop_percent, ind_percent, last_update)';
-        $query .= " VALUES ($race_id, '" . $raceNames[$i] . "', $dem, $gop, ";
         if ($#othPercent == $#raceNames)
         {
             my $oth = $othPercent[$i];
@@ -103,11 +101,33 @@ sub results_to_sql
                 $oth = "0";
             }
         }
-        $query .= "$oth, '$startTime') ";
-        $query .= <<EOF;
-ON DUPLICATE KEY UPDATE democrat_percent=$dem, gop_percent=$gop, ind_percent=$oth, last_update='$startTime'
-EOF
-        $db_conn->prepare($query)->execute();
+        
+        # Grab if already exists.
+        my $name = $raceNames[$i];
+        $name =~ s/^\s+|\s+$//g;
+        $query = "SELECT democrat_percent, gop_percent, ind_percent FROM election_result WHERE race_type='$race_id' AND race_name='$name'";
+        $sth = $db_conn->prepare($query);
+        $sth->execute;
+        my $found = 0;
+        while (my @row = $sth->fetchrow_array())
+        {
+            $found = 1;
+            if (($row[0] != $dem) or ($row[1] != $gop) or ($row[2] != $oth))
+            {
+                $query = "UPDATE election_result SET democrat_percent=$dem, gop_percent=$gop, ind_percent=$oth, last_update='$startTime'";
+                $query .= " WHERE race_type='$race_id' AND race_name='$name'";
+                $db_conn->prepare($query)->execute();
+            }
+            last;
+        }
+        
+        if ($found == 0)
+        {
+            $query = 'INSERT INTO election_result (race_type, race_name, democrat_percent, gop_percent, ind_percent, last_update)';
+            $query .= " VALUES ($race_id, '$name', $dem, $gop, $oth, ";
+            $query .= "'$startTime') ";
+            $db_conn->prepare($query)->execute();
+        }
     }
 }
 

@@ -69,13 +69,31 @@ sub results_to_sql
         my $no = $noPercent[$i];
         my $query = "";
         $name =~ s|</?b>||g;
-        $query = 'INSERT INTO election_result (race_type, race_name, democrat_percent, gop_percent, ind_percent, last_update)';
-        $query .= " VALUES ($race_id, '$name', $yes, $no, 0, ";
-        $query .= "'$startTime') ";
-        $query .= <<EOF;
-ON DUPLICATE KEY UPDATE democrat_percent=$yes, gop_percent=$no, ind_percent=0, last_update='$startTime'
-EOF
-        $db_conn->prepare($query)->execute();
+        
+        # Grab if already exists.
+        $query = "SELECT democrat_percent, gop_percent, ind_percent FROM election_result WHERE race_type='$race_id' AND race_name='$name'";
+        $sth = $db_conn->prepare($query);
+        $sth->execute;
+        my $found = 0;
+        while (my @row = $sth->fetchrow_array())
+        {
+            $found = 1;
+            if (($row[0] != $yes) or ($row[1] != $no))
+            {
+                $query = "UPDATE election_result SET democrat_percent=$yes, gop_percent=$no, ind_percent=0, last_update='$startTime'";
+                $query .= " WHERE race_type='$race_id' AND race_name='$name'";
+                $db_conn->prepare($query)->execute();
+            }
+            last;
+        }
+        
+        if ($found == 0)
+        {
+            $query = 'INSERT INTO election_result (race_type, race_name, democrat_percent, gop_percent, ind_percent, last_update)';
+            $query .= " VALUES ($race_id, '$name', $yes, $no, 0, ";
+            $query .= "'$startTime') ";
+            $db_conn->prepare($query)->execute();
+        }
     }
 }
 
