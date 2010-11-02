@@ -21,7 +21,7 @@
         {
             $format_string = "%h hours";
         }
-        else if ($datediff->m > 0)
+        else if ($datediff->i > 0)
         {
             $format_string = "%i minutes";
         }
