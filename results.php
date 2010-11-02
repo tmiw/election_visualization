@@ -1,4 +1,44 @@
 <?php
+
+    function interval_since_now($tm)
+    {
+        $dt = date_create($tm);
+        $datediff = $dt->diff(date_create(), true);
+        
+        if ($datediff->y > 0)
+        {
+            $format_string = "%y years";
+        }
+        else if ($datediff->m > 0)
+        {
+            $format_string = "%m months";
+        }
+        else if ($datediff->d > 0)
+        {
+            $format_string = "%d days";
+        }
+        else if ($datediff->h > 0)
+        {
+            $format_string = "%h hours";
+        }
+        else if ($datediff->m > 0)
+        {
+            $format_string = "%i minutes";
+        }
+        else
+        {
+            $format_string = "%s seconds";
+        }
+        $diff_formatted = $datediff->format($format_string);
+        
+        if (preg_match("/^1 /", $diff_formatted))
+        {
+            $diff_formatted = preg_replace("/s$/", "", $diff_formatted);
+        }
+        
+        return $diff_formatted;
+    }
+    
     include 'config.inc';
     $db_conn = mysql_pconnect($db_host, $db_user, $db_password) or die(mysql_error());
     mysql_select_db($db_database) or die(mysql_error());
@@ -10,7 +50,8 @@
   <style type="text/css">
       body { font-family: Georgia, serif; }
       .navigation { position: fixed; top: 0px; right: 0px; float: right; border: 1px solid black; width: 300px; text-align: right; }
-
+      .content { padding-right: 300px; }
+      
       .result_bar { }
       .result_bar .dem_result { background-color: blue; float: left; }
       .result_bar .gop_result { background-color: red; float: left; }
@@ -75,7 +116,7 @@ No results yet.
                     </div>
                 </td>
                 <td>
-                    <?= $row['last_update'] ?>
+                    <?= interval_since_now($row['last_update']) ?> ago
                 </td>
             </tr>
             <?php
