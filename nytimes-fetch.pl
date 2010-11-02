@@ -29,10 +29,10 @@ use POSIX qw/strftime/;
 use LWP::Simple;
 use DBI;
 
-# Database connection info
-my $dsn = 'dbi:mysql:election2010:localhost:3306';
-my $db_user = 'update_here';
-my $db_password = 'update_here';
+our $dsn;
+our $db_user;
+our $db_password;
+require "db_config.pl";
 
 # List of URLs to fetch per run.
 my %races =
